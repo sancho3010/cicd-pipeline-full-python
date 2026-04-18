@@ -23,7 +23,6 @@ acceptance_coverage.xml
 .vscode/
 notes/
 
-
 # Terraform
 infra/.terraform/
 infra/.terraform.lock.hcl
