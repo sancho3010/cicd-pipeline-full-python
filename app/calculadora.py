@@ -1,0 +1,21 @@
+# app/calculadora.py
+
+AUTORES = "santiago.higuitau@eafit.edu.co"  # Reemplaza con tu correo EAFIT
+
+
+def sumar(a, b):
+    return a + b
+
+
+def restar(a, b):
+    return a - b
+
+
+def multiplicar(a, b):
+    return a * b
+
+
+def dividir(a, b):
+    if b == 0:
+        raise ZeroDivisionError("No se puede dividir por cero")
+    return a / b
