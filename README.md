@@ -1,6 +1,27 @@
-# CI Pipeline | Calculadora Web
+# CI/CD Pipeline | Calculadora Web
 
-Pipeline de Integración Continua para una aplicación web Python (calculadora) usando GitHub Actions, Docker y herramientas open source.
+Pipeline de Integración y Despliegue Continuo para una aplicación web Python (calculadora) usando GitHub Actions, Terraform y AWS ECS.
+
+
+## Índice
+
+- [Stack](#stack)
+- [Entregable 2 — Integración Continua](#entregable-2--integración-continua)
+  - [1. Ventajas del pipeline de CI](#1-qué-ventajas-le-proporciona-a-un-proyecto-el-uso-de-un-pipeline-de-ci)
+  - [2. Prueba unitaria vs prueba de aceptación](#2-cuál-es-la-diferencia-principal-entre-una-prueba-unitaria-y-una-prueba-de-aceptación)
+  - [3. Steps del workflow](#3-describe-brevemente-qué-hace-cada-step-principal-del-workflow-de-github-actions)
+  - [4. Dificultades encontradas](#4-qué-problemas-o-dificultades-encontraste-al-implementar-este-taller)
+  - [5. Ventajas de Docker](#5-qué-ventajas-ofrece-empaquetar-la-aplicación-en-una-imagen-docker-al-final-del-pipeline)
+- [Entregable 3 — Despliegue Continuo con AWS ECS y Terraform](#entregable-3--despliegue-continuo-con-aws-ecs-y-terraform)
+  - [URLs de los entornos desplegados](#urls-de-los-entornos-desplegados)
+  - [1. Flujo de trabajo con Terraform](#1-explica-el-flujo-de-trabajo-completo-implementado-con-terraform)
+  - [2. Terraform vs despliegue manual](#2-ventajas-y-desventajas-de-terraform-vs-despliegue-manual)
+  - [3. Entorno de Staging](#3-ventajas-y-desventajas-de-introducir-un-entorno-de-staging)
+  - [4. Pruebas Staging vs Producción](#4-diferencia-entre-pruebas-en-staging-y-producción)
+  - [5. Qué le falta al pipeline](#5-qué-le-falta-al-pipeline)
+  - [6. Experiencia con nuevas funcionalidades](#6-experiencia-implementando-las-nuevas-funcionalidades)
+
+---
 
 ## Stack
 
@@ -15,6 +36,8 @@ Pipeline de Integración Continua para una aplicación web Python (calculadora) 
 - **AWS S3** —> backend remoto para el estado de Terraform
 
 ---
+
+## Entregable 2 — Integración Continua
 
 ### 1. ¿Qué ventajas le proporciona a un proyecto el uso de un pipeline de CI?
 
