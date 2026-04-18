@@ -1,4 +1,4 @@
-# CI Pipeline - Calculadora Web
+# CI Pipeline | Calculadora Web
 
 Pipeline de Integración Continua para una aplicación web Python (calculadora) usando GitHub Actions, Docker y herramientas open source.
 
@@ -11,6 +11,8 @@ Pipeline de Integración Continua para una aplicación web Python (calculadora) 
 - **SonarCloud** —> análisis estático continuo
 - **Docker / Docker Hub** —> empaquetado y publicación
 - **GitHub Actions** —> pipeline de CI
+- **Terraform / AWS ECS / AWS ALB** —> infraestructura como código y despliegue en la nube
+- **AWS S3** —> backend remoto para el estado de Terraform
 
 ---
 
@@ -63,3 +65,112 @@ La imagen garantiza que el entorno de ejecución sea idéntico para cada ambient
 - Isis Amaya
 - Santiago Higuita
 - Samuel Oviedo
+
+---
+
+## Entregable 3 — Despliegue Continuo con AWS ECS y Terraform
+
+### URLs de los entornos desplegados
+
+```
+Staging ALB URL:    http://calculadora-staging-alb-1808122732.us-east-1.elb.amazonaws.com/
+Production ALB URL: http://calculadora-production-alb-946781434.us-east-1.elb.amazonaws.com/
+```
+
+---
+
+### 1. Explica el flujo de trabajo completo implementado con Terraform
+
+Cada `push` a `main` dispara el pipeline `ci-cd.yml` que ejecuta 7 jobs en secuencia:
+
+1. **`build-test-publish`**: corre linters (Black, Pylint, Flake8), pruebas unitarias con cobertura, análisis de SonarCloud, y construye y publica la imagen Docker en Docker Hub con dos tags: `latest` y el SHA del commit. Finalmente, se expone el nombre del repo y el SHA como salidas para los jobs siguientes.
+
+2. **`deploy-tf-staging`**: configura las credenciales de AWS, crea el bucket de S3 de estado si este no existe, inicializa Terraform apuntando a `staging/terraform.tfstate` en S3, y corre `terraform apply` para crear o actualizar (idempotente) toda la infraestructura de Staging (ECS Cluster, ALB, Target Group, Security Groups, Task Definition, Service). Finalmente, expone la URL del ALB de Staging.
+
+3. **`update-service-staging`**: forza un nuevo despliegue en ECS con `aws ecs update-service --force-new-deployment` y espera a que el servicio se estabilice con la nueva imagen.
+
+4. **`test-staging`**: instala las dependencias, espera 30 segundos para que el ALB registre los targets, y corre las pruebas de aceptación con Selenium contra la URL real del ALB de Staging. Por último, valida el flujo funcional completo de la calculadora.
+
+5. **`deploy-tf-prod`**: igual a lo se hace en staging pero apuntando a `production/terraform.tfstate`. Solo corre si las pruebas de Staging pasaron de manera exitosa.
+
+6. **`update-service-prod`**: forza el despliegue en ECS de Producción y espera estabilización (igual al update de staging).
+
+7. **`smoke-test-prod`**: corre pruebas de humo contra el ALB de Producción, donde verifica que la página carga y el título contiene "Calculadora".
+
+El artefacto que se mueve a través del pipeline es la **imagen Docker** identificada por el SHA del commit, garantizando que la misma imagen que pasó CI se despliega en Staging y Producción.
+
+---
+
+### 2. Ventajas y desventajas de Terraform vs despliegue manual
+
+**Ventajas:**
+- **Reproducibilidad**: La misma IaC despliega infraestructura idéntica en staging y producción sin errores humanos.
+
+- **Versionado**: los archivos `.tf` viven en Git, lo que permite revisar el historial de cambios en la infraestructura.
+
+- **Automatización**: el pipeline crea y actualiza la infraestructura sin intervención manual.
+
+- **Declarativo**: describes el estado deseado y Terraform se encarga de calcular los cambios necesarios.
+
+- **Idempotencia**: Si la infraestructura ya existe y no cambió nada en los .tf, Terraform no la duplica; solo actualiza lo que cambió o se agregó nuevo.
+
+
+**Desventajas:**
+
+- **Curva de aprendizaje**: HCL tiene su propia sintaxis y conceptos (providers, state, workspaces, etc.) que toman tiempo aprender. La IA puede acelerar el proceso, pero es necesario entender a nivel de componentes cómo estos operan y se relacionan, y conocer y aplicar las buenas prácticas de Terraform.
+
+- **Estado frágil**: el archivo `terraform.tfstate` debe mantenerse sincronizado. Si se corrompe o se pierde, Terraform pierde el control de los recursos existentes. He ahí la importancia de usar un backend como s3 para restaurar la última versión.
+
+- **Depuración compleja**: cuando algo falla en `terraform apply`, los mensajes de error pueden ser difíciles de interpretar.
+
+Definir la infraestructura en Terraform nos resultó intuitivo una vez entendida la estructura de bloques `resource`, `variable` y `output`; lo asociamos a POO. La separación entre declaración de variables y su uso hace que el código sea limpio y reutilizable.
+
+---
+
+### 3. Ventajas y desventajas de introducir un entorno de Staging
+
+**Ventajas:**
+- Permite detectar errores de integración o configuración en un entorno real antes de afectar/tocar producción.
+
+- Las pruebas de aceptación corren contra infraestructura real (ALB, ECS, red), no contra un servidor local.
+
+- Reduce el riesgo de despliegues fallidos en producción.
+
+**Desventajas:**
+- Aumenta el tiempo total del pipeline (15-20 minutos vs 5 minutos sin staging).
+
+- Incrementa el costo de infraestructura al mantener dos entornos activos simultáneamente.
+
+- Requiere mantener la paridad entre staging y producción para que las pruebas sean representativas.
+
+Hay claramente un trade-off entre velocidad vs seguridad: Staging agrega tiempo pero aumenta significativamente la confianza y la robustez en cada despliegue a producción.
+
+---
+
+### 4. Diferencia entre pruebas en Staging y Producción
+
+**Staging (`test-staging`)**: Se hicieron pruebas de **aceptación** completas con Selenium. Se simuló el flujo real de un usuario: abrir el navegador, navegar a la app, ingresar números, seleccionar operaciones y verificar resultados. Con esto, se cubrió todos los casos funcionales de la calculadora. Estas pruebas son más lentas y exhaustivas.
+
+**Producción (`smoke-test-prod`)**: Se hicieron pruebas de **humo** mínimas. Aquí solo se verificó que la página cargara correctamente y que el título sea igual a "Calculadora". En estas pruebas no se prueban funcionalidad completa, sino que buscan ser rápidas y que no estresen el entorno productivo.
+
+La diferencia es intencional, pues en staging podemos ser agresivos con las pruebas porque es un entorno de validación. Y una vez validamos, entonces en producción solo confirmamos que el despliegue fue exitoso y la app está viva.
+
+---
+
+### 5. ¿Qué le falta al pipeline?
+
+**1. Rollback automático**: si las pruebas de humo en producción fallan, el pipeline debería ser capaz de revertir automáticamente al despliegue anterior. No obstante, actualmente el pipeline si falla, quedaría una versión rota en producción. Una opción para soportar el rollback, podría ser guardar el ARN de la task definition anterior (del último despliegue exitoso) y ejecutar `aws ecs update-service --task-definition <arn-anterior>` en caso de que haya un fallo.
+
+**2. Monitoreo y alertas post-despliegue**: el pipeline termina cuando las pruebas de humo pasan, pero no hay observabilidad continua. En producción real se necesitan métricas (latencia, tasa de errores, uso de CPU, etc) y alertas automáticas con CloudWatch, por ejemplo. Si la app empieza a fallar 10 minutos después del despliegue, con el pipeline actual, nadie se enteraría hasta que un usuario reporte el problema.
+
+**3. Pruebas de seguridad (SAST/DAST)**: el pipeline actualmente tiene análisis estático con SonarCloud, pero no tiene aún pruebas de seguridad dinámicas (DAST) que ataquen la app en ejecución para tratar de detectar vulnerabilidades como XSS, inyección SQL o CSRF mal configurado. Herramientas mencionadas en clase como OWASP ZAP podrían integrarse en el job de staging para escanear la app contra el ALB antes de pasar a producción.
+
+---
+
+### 6. Experiencia implementando las nuevas funcionalidades
+
+Implementar las dos funciones nuevas (potencia y módulo) fue directo gracias al pipeline de CI/CD existente. El flujo fue básicamente emular lo que ya había con las funciones iniciales: escribir la función en `calculadora.py`, agregar los tests unitarios y de aceptación, hacer push y dejar que el pipeline validara todo automáticamente de nuevo.
+
+Lo más útil del CI/CD fue la confianza al hacer cambios, pues saber que si el pipeline pasa verde, la nueva funcionalidad está correctamente integrada y desplegada en ambos entornos sin intervención manual, además de que todas las validaciones y el análisis con Sonar correrán de nuevo para identificar alguna brecha, sin que haya que volver a realizar la configuración inicial que se hizo.
+
+Lo menos útil fue el tiempo de espera, pues cada iteración toma 15-20 minutos, lo que hace lento el ciclo de corrección si algo falla en los jobs de CD. No obstante, creo que manualmente sería mucho más lento y, sobre todo, más riesgoso.

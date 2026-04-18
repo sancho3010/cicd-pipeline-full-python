@@ -1,7 +1,7 @@
 # tests/test_calculadora.py
 
 import pytest
-from app.calculadora import sumar, restar, multiplicar, dividir
+from app.calculadora import sumar, restar, multiplicar, dividir, potencia, modulo
 
 def test_sumar():
     assert sumar(2, 3) == 5
@@ -23,3 +23,15 @@ def test_dividir():
     assert dividir(5, -1) == pytest.approx(-5.0)
     with pytest.raises(ZeroDivisionError):
         dividir(1, 0)
+
+def test_potencia():
+    assert potencia(2, 3) == 8
+    assert potencia(5, 0) == 1
+    assert potencia(3, 2) == 9
+
+def test_modulo():
+    assert modulo(10, 3) == 1
+    assert modulo(9, 3) == 0
+    assert modulo(7, 2) == 1
+    with pytest.raises(ZeroDivisionError):
+        modulo(5, 0)

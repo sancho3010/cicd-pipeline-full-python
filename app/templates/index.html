@@ -1,23 +1,144 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Calculadora</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a1a2e;
+            font-size: 1.8rem;
+            margin-bottom: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #333;
+            background: #fafafa;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background: #fff;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+
+        button[type="submit"]:hover {
+            background: #4338ca;
+        }
+
+        .resultado {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .resultado h2 {
+            color: #166534;
+            font-size: 1.2rem;
+        }
+
+        .resultado.error {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .resultado.error h2 {
+            color: #991b1b;
+        }
+    </style>
 </head>
 <body>
-    <h1>Calculadora</h1>
-    <form method="post">
-        <input type="text" name="num1" placeholder="Número 1" required>
-        <input type="text" name="num2" placeholder="Número 2" required>
-        <select name="operacion">
-            <option value="sumar">Sumar</option>
-            <option value="restar">Restar</option>
-            <option value="multiplicar">Multiplicar</option>
-            <option value="dividir">Dividir</option>
-        </select>
-        <button type="submit">Calcular</button>
-    </form>
-    {% if resultado is not none %}
-        <h2>Resultado: {{ resultado }}</h2>
-    {% endif %}
+    <div class="card">
+        <h1>Calculadora</h1>
+        <form method="post">
+            <div class="form-group">
+                <label for="num1">Número 1</label>
+                <input type="text" name="num1" id="num1" placeholder="Ej: 10" required />
+            </div>
+            <div class="form-group">
+                <label for="num2">Número 2</label>
+                <input type="text" name="num2" id="num2" placeholder="Ej: 5" required />
+            </div>
+            <div class="form-group">
+                <label for="operacion">Operación</label>
+                <select name="operacion" id="operacion">
+                    <option value="sumar">Sumar</option>
+                    <option value="restar">Restar</option>
+                    <option value="multiplicar">Multiplicar</option>
+                    <option value="dividir">Dividir</option>
+                    <option value="potencia">Potencia</option>
+                    <option value="modulo">Módulo</option>
+                </select>
+            </div>
+            <button type="submit">Calcular</button>
+        </form>
+        {% if resultado is not none %}
+            <div class="resultado {% if 'Error' in resultado|string %}error{% endif %}">
+                <h2>Resultado: {{ resultado }}</h2>
+            </div>
+        {% endif %}
+    </div>
 </body>
 </html>
