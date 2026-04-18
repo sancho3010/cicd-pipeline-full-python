@@ -1,9 +1,11 @@
 """Módulo principal de la aplicación web Flask para la calculadora."""
 
+import os
 from flask import Flask, render_template, request
 from .calculadora import sumar, restar, multiplicar, dividir
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-only-insecure-key")
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -26,6 +28,7 @@ def index():
                 resultado = dividir(num1, num2)
             else:
                 resultado = "Operación no válida"
+
         except ValueError:
             resultado = "Error: Introduce números válidos"
         except ZeroDivisionError:
@@ -34,5 +37,12 @@ def index():
     return render_template("index.html", resultado=resultado)
 
 
+@app.route("/health")
+def health():
+    """Health check endpoint para el ALB de AWS."""
+    return "OK", 200
+
+
 if __name__ == "__main__":  # pragma: no cover
-    app.run(debug=True, port=5000, host="127.0.0.1")
+    app_port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, port=app_port, host="127.0.0.1")
