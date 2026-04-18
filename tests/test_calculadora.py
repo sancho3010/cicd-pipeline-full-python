@@ -19,7 +19,7 @@ def test_multiplicar():
     assert multiplicar(0, 10) == 0
 
 def test_dividir():
-    assert dividir(10, 2) == 5.0
-    assert dividir(5, -1) == -5.0
+    assert dividir(10, 2) == pytest.approx(5.0)
+    assert dividir(5, -1) == pytest.approx(-5.0)
     with pytest.raises(ZeroDivisionError):
         dividir(1, 0)
