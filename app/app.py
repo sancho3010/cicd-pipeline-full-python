@@ -37,7 +37,7 @@ def index():
     return render_template("index.html", resultado=resultado)
 
 
-@app.route("/health")
+@app.route("/health", methods=["GET"])
 def health():
     """Health check endpoint para el ALB de AWS."""
     return "OK", 200
