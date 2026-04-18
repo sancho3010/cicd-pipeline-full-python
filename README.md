@@ -51,7 +51,7 @@ Las pruebas de aceptación simulan la interacción real de un usuario con la apl
 
 ### 4. ¿Qué problemas o dificultades encontraste al implementar este taller?
 
-Validar los quality gate de Sonnar cloud, no lo había usado antes.
+Validar los quality gate de Sonar cloud, no lo había usado antes.
 
 ### 5. ¿Qué ventajas ofrece empaquetar la aplicación en una imagen Docker al final del pipeline?
 

@@ -1,4 +1,4 @@
-# app/app.py
+"""Módulo principal de la aplicación web Flask para la calculadora."""
 
 from flask import Flask, render_template, request
 from .calculadora import sumar, restar, multiplicar, dividir
@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    """Maneja las peticiones GET y POST de la calculadora web."""
     resultado = None
     if request.method == "POST":
         try:
