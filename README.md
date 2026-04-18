@@ -2,6 +2,11 @@
 
 Pipeline de Integración y Despliegue Continuo para una aplicación web Python (calculadora) usando GitHub Actions, Terraform y AWS ECS.
 
+---
+
+**Estudiantes:** Isis Amaya · Santiago Rozo · Samuel Oviedo · Santiago Higuita
+
+---
 
 ## Índice
 
@@ -81,13 +86,6 @@ Validar los quality gate de Sonar cloud, no lo había usado antes.
 ### 5. ¿Qué ventajas ofrece empaquetar la aplicación en una imagen Docker al final del pipeline?
 
 La imagen garantiza que el entorno de ejecución sea idéntico para cada ambiente como desarrollo, qa y producción; no solo en mi máquina local. Al publicarla en Docker Hub al final del pipeline, solo aquellas versiones que pasaron todas las validaciones (linting, tests, quality gate) quedan disponibles para despliegue. Además, la imagen puede correr en cualquier plataforma que soporte contenedores con configuración adicional o mínima.
-
-### Estudiantes
-
-- Santiago Rozo
-- Isis Amaya
-- Santiago Higuita
-- Samuel Oviedo
 
 ---
 
